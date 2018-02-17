@@ -44,8 +44,7 @@ static MCRegisterInfo *createStarcraftEUDMCRegisterInfo(const Triple &TT) {
 }
 
 static MCSubtargetInfo *createStarcraftEUDMCSubtargetInfo(const Triple &TT, StringRef CPU, StringRef FS) {
-  if (CPU.empty() || CPU == "generic")
-    CPU = "broodwarr1";
+  if (CPU.empty()) CPU = "generic";
   return createStarcraftEUDMCSubtargetInfoImpl(TT, CPU, FS);
   // createStarcraftEUDMCSubtargetInfoImpl defined in StarcraftEUDGenSubtargetInfo.inc
 }

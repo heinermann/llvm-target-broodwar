@@ -34,7 +34,7 @@ bool StarcraftEUDInstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
   default:
     return false;
   case StarcraftEUD::RetRA:
-    BuildMI(MBB, MI, MI.getDebugLoc(), get(StarcraftEUD::RET_R1)).addReg(StarcraftEUD::RA);
+    BuildMI(MBB, MI, MI.getDebugLoc(), get(StarcraftEUD::RET)).addReg(StarcraftEUD::RA);
     break;
   }
 
@@ -46,7 +46,7 @@ void StarcraftEUDInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
                                  MachineBasicBlock::iterator I,
                                  const DebugLoc &DL, unsigned DestReg,
                                  unsigned SrcReg, bool KillSrc) const {
-  unsigned opc = Subtarget.hasStarcraftEUDr2() ? StarcraftEUD::ADD_R2 : StarcraftEUD::ADD_R1;
+  unsigned opc = StarcraftEUD::ADD;
   BuildMI(MBB, I, DL, get(opc))
     .addReg(DestReg, RegState::Define)
     .addReg(StarcraftEUD::ZERO)

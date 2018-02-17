@@ -36,8 +36,6 @@ StarcraftEUDSubtarget::StarcraftEUDSubtarget(const Triple &TT, const std::string
 
 StarcraftEUDSubtarget &StarcraftEUDSubtarget::initializeSubtargetDependencies(StringRef CPU,
                                                                 StringRef FS) {
-  StarcraftEUDArchVersion = StarcraftEUDr1;
-
   // Parse features string.
   ParseSubtargetFeatures(CPU, FS);
 

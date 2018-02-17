@@ -56,9 +56,6 @@ def FrmF2      : Format<27>;
 // Instruction Predicates:
 //===----------------------------------------------------------------------===//
 
-def isStarcraftEUDr1 : Predicate<"Subtarget->isStarcraftEUDr1()">;
-def isStarcraftEUDr2 : Predicate<"Subtarget->isStarcraftEUDr2()">;
-
 class PredicateControl {
   // Predicates related to specific target CPU features
   list<Predicate> FeaturePredicates = [];
@@ -110,29 +107,11 @@ class StarcraftEUDPseudo<dag outs, dag ins, string asmstr, list<dag> pattern,
 }
 
 //===----------------------------------------------------------------------===//
-// Base classes for R1 and R2 instructions
-//===----------------------------------------------------------------------===//
-
-class StarcraftEUDR1Inst32<dag outs, dag ins, string asmstr, list<dag> pattern,
-                    InstrItinClass itin, Format f>: 
-      StarcraftEUDInst32<outs, ins, asmstr, pattern, itin, f> {
-  let DecoderNamespace = "StarcraftEUD";
-  let InstrPredicates = [isStarcraftEUDr1];
-}
-
-class StarcraftEUDR2Inst32<dag outs, dag ins, string asmstr, list<dag> pattern,
-                    InstrItinClass itin, Format f>: 
-      StarcraftEUDInst32<outs, ins, asmstr, pattern, itin, f> {
-  let DecoderNamespace = "StarcraftEUDr2";
-  let InstrPredicates = [isStarcraftEUDr2];
-}
-
-//===----------------------------------------------------------------------===//
 // Format I instruction class in StarcraftEUD : <|A|B|immediate|opcode|>
 //===----------------------------------------------------------------------===//
 
 class FI<bits<6> op, dag outs, dag ins, string asmstr, list<dag> pattern,
-         InstrItinClass itin>: StarcraftEUDR1Inst32<outs, ins, asmstr,
+         InstrItinClass itin>: StarcraftEUDInst32<outs, ins, asmstr,
                                        pattern, itin, FrmI> {
 
   bits<5>  rA;
@@ -152,7 +131,7 @@ class FI<bits<6> op, dag outs, dag ins, string asmstr, list<dag> pattern,
 //===----------------------------------------------------------------------===//
 
 class FR<bits<6> opx, dag outs, dag ins, string asmstr, list<dag> pattern,
-         InstrItinClass itin>: StarcraftEUDR1Inst32<outs, ins, asmstr,
+         InstrItinClass itin>: StarcraftEUDInst32<outs, ins, asmstr,
                                        pattern, itin, FrmR> {
   bits<5> rA;
   bits<5> rB;
@@ -174,7 +153,7 @@ class FR<bits<6> opx, dag outs, dag ins, string asmstr, list<dag> pattern,
 
 class FJ<bits<6> op, dag outs, dag ins, string asmstr, list<dag> pattern,
          InstrItinClass itin>:
-      StarcraftEUDR1Inst32<outs, ins, asmstr, pattern, itin, FrmJ> {
+      StarcraftEUDInst32<outs, ins, asmstr, pattern, itin, FrmJ> {
   bits<26> addr;
   let Opcode = op;
   let Inst{31-6} = addr;
@@ -186,7 +165,7 @@ class FJ<bits<6> op, dag outs, dag ins, string asmstr, list<dag> pattern,
 
 class F3X6<bits<6> opx, dag outs, dag ins, string asmstr, list<dag> pattern,
            InstrItinClass itin>:
-      StarcraftEUDR2Inst32<outs, ins, asmstr, pattern, itin, FrmF3X6> {
+      StarcraftEUDInst32<outs, ins, asmstr, pattern, itin, FrmF3X6> {
   bits<5> rC;
   bits<5> rB;
   bits<5> rA;
@@ -206,30 +185,15 @@ class F3X6<bits<6> opx, dag outs, dag ins, string asmstr, list<dag> pattern,
 //===----------------------------------------------------------------------===//
 
 // Multiclass for instructions that have R format in R1 and F3X6 format in R2
-// and their opx values differ between R1 and R2
-multiclass CommonInstr_R_F3X6_opx<bits<6> opxR1, bits<6> opxR2, dag outs,
-                                  dag ins, string asmstr, list<dag> pattern,
-                                  InstrItinClass itin> {
-  def NAME#_R1 : FR<opxR1, outs, ins, asmstr, pattern, itin>;
-  def NAME#_R2 : F3X6<opxR2, outs, ins, asmstr, pattern, itin>;
-}
-
-// Multiclass for instructions that have R format in R1 and F3X6 format in R2
 // and their opx values are the same in R1 and R2
 multiclass CommonInstr_R_F3X6<bits<6> opx, dag outs, dag ins, string asmstr,
-                              list<dag> pattern, InstrItinClass itin> :
-  CommonInstr_R_F3X6_opx<opx, opx, outs, ins, asmstr, pattern, itin>;
-
-// Multiclass for instructions that have I format in R1 and F2I16 format in R2
-// and their op code values differ between R1 and R2
-multiclass CommonInstr_I_F2I16_op<bits<6> opR1, bits<6> opR2, dag outs, dag ins,
-                                  string asmstr, list<dag> pattern,
-                                  InstrItinClass itin> {
-  def NAME#_R1 : FI<opR1, outs, ins, asmstr, pattern, itin>;
+                              list<dag> pattern, InstrItinClass itin> {
+  def NAME# : FR<opx, outs, ins, asmstr, pattern, itin>;
 }
 
 // Multiclass for instructions that have I format in R1 and F2I16 format in R2
 // and their op code values are the same in R1 and R2
 multiclass CommonInstr_I_F2I16<bits<6> op, dag outs, dag ins, string asmstr,
-                               list<dag> pattern, InstrItinClass itin> :
-  CommonInstr_I_F2I16_op<op, op, outs, ins, asmstr, pattern, itin>;
+                               list<dag> pattern, InstrItinClass itin> {
+  def NAME# : FI<op, outs, ins, asmstr, pattern, itin>;
+}

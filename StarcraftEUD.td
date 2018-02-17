@@ -18,22 +18,13 @@ include "StarcraftEUDInstrInfo.td"
 include "StarcraftEUDCallingConv.td"
 
 //===----------------------------------------------------------------------===//
-// StarcraftEUD Subtarget features
-//===----------------------------------------------------------------------===//
-def FeatureStarcraftEUDr1     : SubtargetFeature<"broodwarr1", "StarcraftEUDArchVersion", 
-                                "StarcraftEUDr1", "StarcraftEUD R1 ISA Support">;
-def FeatureStarcraftEUDr2     : SubtargetFeature<"broodwarr2", "StarcraftEUDArchVersion",                      
-                               "StarcraftEUDr2", "StarcraftEUD R2 ISA Support">;
-
-//===----------------------------------------------------------------------===//
 // StarcraftEUD processors supported.
 //===----------------------------------------------------------------------===//
 
 class Proc<string Name, list<SubtargetFeature> Features>
  : Processor<Name, StarcraftEUDGenericItineraries, Features>;
 
-def : Proc<"broodwarr1", [FeatureStarcraftEUDr1]>;
-def : Proc<"broodwarr2", [FeatureStarcraftEUDr2]>;
+def : Proc<"generic", []>;
 
 def StarcraftEUDInstrInfo : InstrInfo;
 
