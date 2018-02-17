@@ -1,0 +1,6 @@
+[component_0]
+type = Library
+name = StarcraftEUDInfo
+parent = StarcraftEUD
+required_libraries = Support
+add_to_library_groups = StarcraftEUD

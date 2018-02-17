@@ -1,0 +1,28 @@
+set(LLVM_TARGET_DEFINITIONS StarcraftEUD.td)
+
+tablegen(LLVM StarcraftEUDGenAsmWriter.inc -gen-asm-writer)
+tablegen(LLVM StarcraftEUDGenDAGISel.inc -gen-dag-isel)
+tablegen(LLVM StarcraftEUDGenRegisterInfo.inc -gen-register-info)
+tablegen(LLVM StarcraftEUDGenCallingConv.inc -gen-callingconv)
+tablegen(LLVM StarcraftEUDGenInstrInfo.inc -gen-instr-info)
+tablegen(LLVM StarcraftEUDGenSubtargetInfo.inc -gen-subtarget)
+
+add_public_tablegen_target(StarcraftEUDCommonTableGene)
+
+add_llvm_target(StarcraftEUDCodeGen
+   StarcraftEUDAsmPrinter.cpp
+   StarcraftEUDFrameLowering.cpp
+   StarcraftEUDInstrInfo.cpp
+   StarcraftEUDISelDAGToDAG.cpp
+   StarcraftEUDISelLowering.cpp
+   StarcraftEUDMachineFunction.cpp
+   StarcraftEUDMCInstLower.cpp
+   StarcraftEUDRegisterInfo.cpp
+   StarcraftEUDSubtarget.cpp
+   StarcraftEUDTargetMachine.cpp
+   StarcraftEUDTargetObjectFile.cpp
+  )
+
+add_subdirectory(InstPrinter)
+add_subdirectory(MCTargetDesc)
+add_subdirectory(TargetInfo)

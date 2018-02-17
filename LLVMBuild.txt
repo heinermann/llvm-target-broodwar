@@ -1,0 +1,19 @@
+[common]
+subdirectories = TargetInfo MCTargetDesc InstPrinter
+
+[component_0]
+type = TargetGroup
+name = StarcraftEUD
+parent = Target
+;has_asmparser = 1
+;has_asmprinter = 1
+;has_disassembler = 1
+;has_jit = 1
+
+[component_1]
+type = Library
+name = StarcraftEUDCodeGen
+parent = StarcraftEUD
+required_libraries = AsmPrinter CodeGen Core MC SelectionDAG
+                     StarcraftEUDInfo StarcraftEUDDesc StarcraftEUDAsmPrinter Support Target
+add_to_library_groups = StarcraftEUD

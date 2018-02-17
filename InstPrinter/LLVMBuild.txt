@@ -1,0 +1,6 @@
+[component_0]
+type = Library
+name = StarcraftEUDAsmPrinter
+parent = StarcraftEUD
+required_libraries = MC Support
+add_to_library_groups = StarcraftEUD
