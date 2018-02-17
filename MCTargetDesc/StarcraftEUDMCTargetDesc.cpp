@@ -14,7 +14,6 @@
 #include "StarcraftEUDMCTargetDesc.h"
 #include "InstPrinter/StarcraftEUDInstPrinter.h"
 #include "StarcraftEUDMCAsmInfo.h"
-#include "StarcraftEUDTargetStreamer.h"
 #include "llvm/MC/MCInstrInfo.h"
 #include "llvm/MC/MCRegisterInfo.h"
 #include "llvm/MC/MCSubtargetInfo.h"
@@ -68,13 +67,6 @@ static MCInstPrinter *createStarcraftEUDMCInstPrinter(const Triple &T,
   return new StarcraftEUDInstPrinter(MAI, MII, MRI);
 }
 
-static MCTargetStreamer *createStarcraftEUDAsmTargetStreamer(MCStreamer &S,
-                                                      formatted_raw_ostream &OS,
-                                                      MCInstPrinter *InstPrint,
-                                                      bool isVerboseAsm) {
-  return new StarcraftEUDTargetAsmStreamer(S, OS);
-}
-
 extern "C" void LLVMInitializeStarcraftEUDTargetMC() {
   Target *T = &getTheStarcraftEUDTarget();
 
@@ -86,9 +78,6 @@ extern "C" void LLVMInitializeStarcraftEUDTargetMC() {
 
   // Register the MC register info.
   TargetRegistry::RegisterMCRegInfo(*T, createStarcraftEUDMCRegisterInfo);
-
-  // Register the asm target streamer.
-  TargetRegistry::RegisterAsmTargetStreamer(*T, createStarcraftEUDAsmTargetStreamer);
 
   // Register the MC subtarget info.
   TargetRegistry::RegisterMCSubtargetInfo(*T, createStarcraftEUDMCSubtargetInfo);
