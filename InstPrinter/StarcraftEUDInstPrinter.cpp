@@ -1,4 +1,4 @@
-//===-- StarcraftEUDInstPrinter.cpp - Convert StarcraftEUD MCInst to assembly syntax-----===//
+//===-- StarcraftEUDInstPrinter.cpp - Convert StarcraftEUD MCInst to asm syntax -------------===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -12,55 +12,98 @@
 //===----------------------------------------------------------------------===//
 
 #include "StarcraftEUDInstPrinter.h"
-
-#include "StarcraftEUDInstrInfo.h"
+#include "StarcraftEUD.h"
+#include "llvm/MC/MCAsmInfo.h"
 #include "llvm/MC/MCExpr.h"
 #include "llvm/MC/MCInst.h"
-#include "llvm/MC/MCInstrInfo.h"
-#include "llvm/Support/raw_ostream.h"
+#include "llvm/MC/MCSymbol.h"
+#include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/FormattedStream.h"
 using namespace llvm;
 
 #define DEBUG_TYPE "asm-printer"
 
-#define PRINT_ALIAS_INSTR
+// Include the auto-generated portion of the assembly writer.
 #include "StarcraftEUDGenAsmWriter.inc"
 
-void StarcraftEUDInstPrinter::printRegName(raw_ostream &OS, unsigned RegNo) const {
-  OS << getRegisterName(RegNo);
-}
-
 void StarcraftEUDInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
-                                 StringRef Annot, const MCSubtargetInfo &STI) {
-  // Try to print any aliases first.
-  if (!printAliasInstr(MI, STI, O))
-    printInstruction(MI, STI, O);
+                               StringRef Annot, const MCSubtargetInfo &STI) {
+  printInstruction(MI, O);
   printAnnotation(O, Annot);
 }
 
-void StarcraftEUDInstPrinter::printOperand(const MCInst *MI, int OpNo,
-                                    const MCSubtargetInfo &STI,
-                                    raw_ostream &O) {
-  const MCOperand &Op = MI->getOperand(OpNo);
-  if (Op.isReg()) {
-    printRegName(O, Op.getReg());
-    return;
-  }
+static void printExpr(const MCExpr *Expr, raw_ostream &O) {
+#ifndef NDEBUG
+  const MCSymbolRefExpr *SRE;
 
-  if (Op.isImm()) {
-    O << Op.getImm();
-    return;
-  }
+  if (const MCBinaryExpr *BE = dyn_cast<MCBinaryExpr>(Expr))
+    SRE = dyn_cast<MCSymbolRefExpr>(BE->getLHS());
+  else
+    SRE = dyn_cast<MCSymbolRefExpr>(Expr);
+  assert(SRE && "Unexpected MCExpr type.");
 
-  assert(Op.isExpr() && "unknown operand kind in printOperand");
-  Op.getExpr()->print(O, &MAI, true);
+  MCSymbolRefExpr::VariantKind Kind = SRE->getKind();
+
+  assert(Kind == MCSymbolRefExpr::VK_None);
+#endif
+  O << *Expr;
 }
 
-void StarcraftEUDInstPrinter::printMemOperand(const MCInst *MI, int opNum,
-                                       const MCSubtargetInfo &STI,
-                                       raw_ostream &O, const char *Modifier) {
-  // Load/Store memory operands -- imm($reg)
-  printOperand(MI, opNum + 1, STI, O);
-  O << "(";
-  printOperand(MI, opNum, STI, O);
-  O << ")";
+void StarcraftEUDInstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
+                                  raw_ostream &O, const char *Modifier) {
+  assert((Modifier == 0 || Modifier[0] == 0) && "No modifiers supported");
+  const MCOperand &Op = MI->getOperand(OpNo);
+  if (Op.isReg()) {
+    O << getRegisterName(Op.getReg());
+  } else if (Op.isImm()) {
+    O << formatImm((int32_t)Op.getImm());
+  } else {
+    assert(Op.isExpr() && "Expected an expression");
+    printExpr(Op.getExpr(), O);
+  }
+}
+
+void StarcraftEUDInstPrinter::printMemOperand(const MCInst *MI, int OpNo, raw_ostream &O,
+                                     const char *Modifier) {
+  const MCOperand &RegOp = MI->getOperand(OpNo);
+  const MCOperand &OffsetOp = MI->getOperand(OpNo + 1);
+
+  // register
+  assert(RegOp.isReg() && "Register operand not a register");
+  O << getRegisterName(RegOp.getReg());
+
+  // offset
+  if (OffsetOp.isImm()) {
+    auto Imm = OffsetOp.getImm();
+    if (Imm >= 0)
+      O << " + " << formatImm(Imm);
+    else
+      O << " - " << formatImm(-Imm);
+  } else {
+    assert(0 && "Expected an immediate");
+  }
+}
+
+void StarcraftEUDInstPrinter::printImm64Operand(const MCInst *MI, unsigned OpNo,
+                                       raw_ostream &O) {
+  const MCOperand &Op = MI->getOperand(OpNo);
+  if (Op.isImm())
+    O << formatImm(Op.getImm());
+  else if (Op.isExpr())
+    printExpr(Op.getExpr(), O);
+  else
+    O << Op;
+}
+
+void StarcraftEUDInstPrinter::printBrTargetOperand(const MCInst *MI, unsigned OpNo,
+                                       raw_ostream &O) {
+  const MCOperand &Op = MI->getOperand(OpNo);
+  if (Op.isImm()) {
+    int16_t Imm = Op.getImm();
+    O << ((Imm >= 0) ? "+" : "") << formatImm(Imm);
+  } else if (Op.isExpr()) {
+    printExpr(Op.getExpr(), O);
+  } else {
+    O << Op;
+  }
 }

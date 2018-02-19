@@ -1,4 +1,4 @@
-//===-- StarcraftEUDInstrFormats.td - StarcraftEUD Instruction Formats ---*- tablegen -*-===//
+//===-- StarcraftEUDInstrFormats.td - StarcraftEUD Instruction Formats -------*- tablegen -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -7,193 +7,108 @@
 //
 //===----------------------------------------------------------------------===//
 
-//===----------------------------------------------------------------------===//
-//  Describe NIOS2 instructions format
-//
-//
-//===----------------------------------------------------------------------===//
-
-// Format specifies the encoding used by the instruction.  This is part of the
-// ad-hoc solution used to emit machine instruction encodings by our machine
-// code emitter.
-class Format<bits<6> val> {
-  bits<6> Value = val;
+class StarcraftEUDOpClass<bits<3> val> {
+  bits<3> Value = val;
 }
 
-def Pseudo     : Format<0>;
-// StarcraftEUD R1 instr formats:
-def FrmI       : Format<1>;
-def FrmR       : Format<2>;
-def FrmJ       : Format<3>;
-def FrmOther   : Format<4>;  // Instruction w/ a custom format
-// StarcraftEUD R2 instr 32-bit formats:
-def FrmL26     : Format<5>;  // corresponds to J format in R1
-def FrmF2I16   : Format<6>;  // corresponds to I format in R1
-def FrmF2X4I12 : Format<7>;
-def FrmF1X4I12 : Format<8>;
-def FrmF1X4L17 : Format<9>;
-def FrmF3X6L5  : Format<10>; // corresponds to R format in R1
-def FrmF2X6L10 : Format<11>;
-def FrmF3X6    : Format<12>; // corresponds to R format in R1
-def FrmF3X8    : Format<13>; // corresponds to custom format in R1
-// StarcraftEUD R2 instr 16-bit formats:
-def FrmI10     : Format<14>;
-def FrmT1I7    : Format<15>; 
-def FrmT2I4    : Format<16>;
-def FrmT1X1I6  : Format<17>;
-def FrmX1I7    : Format<18>;
-def FrmL5I4X1  : Format<19>;
-def FrmT2X1L3  : Format<20>;
-def FrmT2X1I3  : Format<21>;
-def FrmT3X1    : Format<22>;
-def FrmT2X3    : Format<23>;
-def FrmF1X1    : Format<24>;
-def FrmX2L5    : Format<25>;
-def FrmF1I5    : Format<26>;
-def FrmF2      : Format<27>;
+def StarcraftEUD_LD    : StarcraftEUDOpClass<0x0>;
+def StarcraftEUD_LDX   : StarcraftEUDOpClass<0x1>;
+def StarcraftEUD_ST    : StarcraftEUDOpClass<0x2>;
+def StarcraftEUD_STX   : StarcraftEUDOpClass<0x3>;
+def StarcraftEUD_ALU   : StarcraftEUDOpClass<0x4>;
+def StarcraftEUD_JMP   : StarcraftEUDOpClass<0x5>;
+def StarcraftEUD_ALU64 : StarcraftEUDOpClass<0x7>;
 
-//===----------------------------------------------------------------------===//
-// Instruction Predicates:
-//===----------------------------------------------------------------------===//
-
-class PredicateControl {
-  // Predicates related to specific target CPU features
-  list<Predicate> FeaturePredicates = [];
-  // Predicates for the instruction group membership in given ISA
-  list<Predicate> InstrPredicates = [];
-  
-  list<Predicate> Predicates = !listconcat(FeaturePredicates, InstrPredicates);
+class StarcraftEUDSrcType<bits<1> val> {
+  bits<1> Value = val;
 }
 
-//===----------------------------------------------------------------------===//
-// Base classes for 32-bit, 16-bit and pseudo instructions
-//===----------------------------------------------------------------------===//
+def StarcraftEUD_K : StarcraftEUDSrcType<0x0>;
+def StarcraftEUD_X : StarcraftEUDSrcType<0x1>;
 
-class StarcraftEUDInst32<dag outs, dag ins, string asmstr, list<dag> pattern,
-                  InstrItinClass itin, Format f>: Instruction,
-                                      PredicateControl {
-  field bits<32> Inst;
-  Format Form = f;
+class StarcraftEUDArithOp<bits<4> val> {
+  bits<4> Value = val;
+}
+
+def StarcraftEUD_ADD  : StarcraftEUDArithOp<0x0>;
+def StarcraftEUD_SUB  : StarcraftEUDArithOp<0x1>;
+def StarcraftEUD_MUL  : StarcraftEUDArithOp<0x2>;
+def StarcraftEUD_DIV  : StarcraftEUDArithOp<0x3>;
+def StarcraftEUD_OR   : StarcraftEUDArithOp<0x4>;
+def StarcraftEUD_AND  : StarcraftEUDArithOp<0x5>;
+def StarcraftEUD_LSH  : StarcraftEUDArithOp<0x6>;
+def StarcraftEUD_RSH  : StarcraftEUDArithOp<0x7>;
+def StarcraftEUD_NEG  : StarcraftEUDArithOp<0x8>;
+def StarcraftEUD_XOR  : StarcraftEUDArithOp<0xa>;
+def StarcraftEUD_MOV  : StarcraftEUDArithOp<0xb>;
+def StarcraftEUD_ARSH : StarcraftEUDArithOp<0xc>;
+def StarcraftEUD_END  : StarcraftEUDArithOp<0xd>;
+
+class StarcraftEUDEndDir<bits<1> val> {
+  bits<1> Value = val;
+}
+
+def StarcraftEUD_TO_LE : StarcraftEUDSrcType<0x0>;
+def StarcraftEUD_TO_BE : StarcraftEUDSrcType<0x1>;
+
+class StarcraftEUDJumpOp<bits<4> val> {
+  bits<4> Value = val;
+}
+
+def StarcraftEUD_JA   : StarcraftEUDJumpOp<0x0>;
+def StarcraftEUD_JEQ  : StarcraftEUDJumpOp<0x1>;
+def StarcraftEUD_JGT  : StarcraftEUDJumpOp<0x2>;
+def StarcraftEUD_JGE  : StarcraftEUDJumpOp<0x3>;
+def StarcraftEUD_JNE  : StarcraftEUDJumpOp<0x5>;
+def StarcraftEUD_JSGT : StarcraftEUDJumpOp<0x6>;
+def StarcraftEUD_JSGE : StarcraftEUDJumpOp<0x7>;
+def StarcraftEUD_CALL : StarcraftEUDJumpOp<0x8>;
+def StarcraftEUD_EXIT : StarcraftEUDJumpOp<0x9>;
+def StarcraftEUD_JLT  : StarcraftEUDJumpOp<0xa>;
+def StarcraftEUD_JLE  : StarcraftEUDJumpOp<0xb>;
+def StarcraftEUD_JSLT : StarcraftEUDJumpOp<0xc>;
+def StarcraftEUD_JSLE : StarcraftEUDJumpOp<0xd>;
+
+class StarcraftEUDWidthModifer<bits<2> val> {
+  bits<2> Value = val;
+}
+
+def StarcraftEUD_W  : StarcraftEUDWidthModifer<0x0>;
+def StarcraftEUD_H  : StarcraftEUDWidthModifer<0x1>;
+def StarcraftEUD_B  : StarcraftEUDWidthModifer<0x2>;
+def StarcraftEUD_DW : StarcraftEUDWidthModifer<0x3>;
+
+class StarcraftEUDModeModifer<bits<3> val> {
+  bits<3> Value = val;
+}
+
+def StarcraftEUD_IMM  : StarcraftEUDModeModifer<0x0>;
+def StarcraftEUD_ABS  : StarcraftEUDModeModifer<0x1>;
+def StarcraftEUD_IND  : StarcraftEUDModeModifer<0x2>;
+def StarcraftEUD_MEM  : StarcraftEUDModeModifer<0x3>;
+def StarcraftEUD_XADD : StarcraftEUDModeModifer<0x6>;
+
+class InstStarcraftEUD<dag outs, dag ins, string asmstr, list<dag> pattern>
+  : Instruction {
+  field bits<64> Inst;
+  field bits<64> SoftFail = 0;
+  let Size = 8;
 
   let Namespace = "StarcraftEUD";
-  let Size = 4;
-
-  bits<6> Opcode = 0;
-
-  // Bottom 6 bits are the 'opcode' field
-  let Inst{5-0} = Opcode;
-
-  let OutOperandList = outs;
-  let InOperandList  = ins;
-
-  let AsmString = asmstr;
-  let Pattern   = pattern;
-  let Itinerary = itin;
-
-  // Attributes specific to StarcraftEUD instructions:
-
-  // TSFlags layout should be kept in sync with StarcraftEUDInstrInfo.h.
-  let TSFlags{5-0} = Form.Value;
   let DecoderNamespace = "StarcraftEUD";
-  field bits<32> SoftFail = 0;
+
+  StarcraftEUDOpClass StarcraftEUDClass;
+  let Inst{58-56} = StarcraftEUDClass.Value;
+
+  dag OutOperandList = outs;
+  dag InOperandList = ins;
+  let AsmString = asmstr;
+  let Pattern = pattern;
 }
 
-class StarcraftEUDPseudo<dag outs, dag ins, string asmstr, list<dag> pattern,
-      InstrItinClass Itin = IIPseudo>:
-  StarcraftEUDInst32<outs, ins, asmstr, pattern, Itin, Pseudo> {
-
-  let isCodeGenOnly = 1;
+// Pseudo instructions
+class Pseudo<dag outs, dag ins, string asmstr, list<dag> pattern>
+  : InstStarcraftEUD<outs, ins, asmstr, pattern> {
+  let Inst{63-0} = 0;
   let isPseudo = 1;
-}
-
-//===----------------------------------------------------------------------===//
-// Format I instruction class in StarcraftEUD : <|A|B|immediate|opcode|>
-//===----------------------------------------------------------------------===//
-
-class FI<bits<6> op, dag outs, dag ins, string asmstr, list<dag> pattern,
-         InstrItinClass itin>: StarcraftEUDInst32<outs, ins, asmstr,
-                                       pattern, itin, FrmI> {
-
-  bits<5>  rA;
-  bits<5>  rB;
-  bits<16> imm;
-
-  let Opcode = op;
-
-  let Inst{31-27} = rA;
-  let Inst{26-22} = rB;
-  let Inst{21-6} = imm;
-}
-
-
-//===----------------------------------------------------------------------===//
-// Format R instruction : <|A|B|C|opx|imm|opcode|>
-//===----------------------------------------------------------------------===//
-
-class FR<bits<6> opx, dag outs, dag ins, string asmstr, list<dag> pattern,
-         InstrItinClass itin>: StarcraftEUDInst32<outs, ins, asmstr,
-                                       pattern, itin, FrmR> {
-  bits<5> rA;
-  bits<5> rB;
-  bits<5> rC;
-  bits<5> imm = 0;
-
-  let Opcode = 0x3a; /* opcode is always 0x3a for R instr. */
-
-  let Inst{31-27} = rA;
-  let Inst{26-22} = rB;
-  let Inst{21-17} = rC;
-  let Inst{16-11} = opx; /* opx stands for opcode extension */
-  let Inst{10-6}  = imm; /* optional 5-bit immediate value */
-}
-
-//===----------------------------------------------------------------------===//
-// Format J instruction class in StarcraftEUD : <|address|opcode|>
-//===----------------------------------------------------------------------===//
-
-class FJ<bits<6> op, dag outs, dag ins, string asmstr, list<dag> pattern,
-         InstrItinClass itin>:
-      StarcraftEUDInst32<outs, ins, asmstr, pattern, itin, FrmJ> {
-  bits<26> addr;
-  let Opcode = op;
-  let Inst{31-6} = addr;
-}
-
-//===----------------------------------------------------------------------===//
-// Format F3X6 (R2) instruction : <|opx|RSV|C|B|A|opcode|>
-//===----------------------------------------------------------------------===//
-
-class F3X6<bits<6> opx, dag outs, dag ins, string asmstr, list<dag> pattern,
-           InstrItinClass itin>:
-      StarcraftEUDInst32<outs, ins, asmstr, pattern, itin, FrmF3X6> {
-  bits<5> rC;
-  bits<5> rB;
-  bits<5> rA;
-  bits<5> rsv = 0;
-
-  let Opcode = 0x20; /* opcode is always 0x20 (OPX group) for F3X6 instr. */
-
-  let Inst{31-26} = opx; /* opx stands for opcode extension */
-  let Inst{25-21} = rsv;
-  let Inst{20-16} = rC;
-  let Inst{15-11} = rB;
-  let Inst{10-6}  = rA;
-}
-
-//===----------------------------------------------------------------------===//
-// Multiclasses for common instructions of both R1 and R2:
-//===----------------------------------------------------------------------===//
-
-// Multiclass for instructions that have R format in R1 and F3X6 format in R2
-// and their opx values are the same in R1 and R2
-multiclass CommonInstr_R_F3X6<bits<6> opx, dag outs, dag ins, string asmstr,
-                              list<dag> pattern, InstrItinClass itin> {
-  def NAME# : FR<opx, outs, ins, asmstr, pattern, itin>;
-}
-
-// Multiclass for instructions that have I format in R1 and F2I16 format in R2
-// and their op code values are the same in R1 and R2
-multiclass CommonInstr_I_F2I16<bits<6> op, dag outs, dag ins, string asmstr,
-                               list<dag> pattern, InstrItinClass itin> {
-  def NAME# : FI<op, outs, ins, asmstr, pattern, itin>;
 }

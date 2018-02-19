@@ -1,4 +1,4 @@
-//===-- StarcraftEUDMCAsmInfo.h - StarcraftEUD Asm Info ----------------------*- C++ -*--===//
+//===-- StarcraftEUDMCAsmInfo.h - StarcraftEUD asm properties -------------------*- C++ -*--====//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -11,21 +11,39 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LLVM_LIB_TARGET_NIOS2_MCTARGETDESC_NIOS2MCASMINFO_H
-#define LLVM_LIB_TARGET_NIOS2_MCTARGETDESC_NIOS2MCASMINFO_H
+#ifndef LLVM_LIB_TARGET_STARCRAFTEUD_MCTARGETDESC_STARCRAFTEUDMCASMINFO_H
+#define LLVM_LIB_TARGET_STARCRAFTEUD_MCTARGETDESC_STARCRAFTEUDMCASMINFO_H
 
-#include "llvm/MC/MCAsmInfoELF.h"
+#include "llvm/ADT/Triple.h"
+#include "llvm/MC/MCAsmInfo.h"
 
 namespace llvm {
-class Triple;
+class Target;
 
-class StarcraftEUDMCAsmInfo : public MCAsmInfoELF {
-  void anchor() override;
-
+class StarcraftEUDMCAsmInfo : public MCAsmInfo {
 public:
-  explicit StarcraftEUDMCAsmInfo(const Triple &TheTriple);
-};
+  explicit StarcraftEUDMCAsmInfo(const Triple &TT) {
+    IsLittleEndian = true;
 
-} // namespace llvm
+    PrivateGlobalPrefix = ".L";
+    WeakRefDirective = "\t.weak\t";
+
+    UsesELFSectionDirectiveForBSS = true;
+    HasSingleParameterDotFile = false;
+    HasDotTypeDotSizeDirective = false;
+
+    SupportsDebugInformation = true;
+    ExceptionsType = ExceptionHandling::DwarfCFI;
+    MinInstAlignment = 8;
+
+    // the default is 4 and it only affects dwarf elf output
+    // so if not set correctly, the dwarf data will be
+    // messed up in random places by 4 bytes. .debug_line
+    // section will be parsable, but with odd offsets and
+    // line numbers, etc.
+    CodePointerSize = 8;
+  }
+};
+}
 
 #endif

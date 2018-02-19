@@ -1,4 +1,4 @@
-//===-- StarcraftEUDISelLowering.h - StarcraftEUD DAG Lowering Interface ------*- C++ -*-===//
+//===-- StarcraftEUDISelLowering.h - StarcraftEUD DAG Lowering Interface ----------*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -12,52 +12,95 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LLVM_LIB_TARGET_NIOS2_NIOS2ISELLOWERING_H
-#define LLVM_LIB_TARGET_NIOS2_NIOS2ISELLOWERING_H
+#ifndef LLVM_LIB_TARGET_STARCRAFTEUD_STARCRAFTEUDISELLOWERING_H
+#define LLVM_LIB_TARGET_STARCRAFTEUD_STARCRAFTEUDISELLOWERING_H
 
 #include "StarcraftEUD.h"
+#include "llvm/CodeGen/SelectionDAG.h"
 #include "llvm/CodeGen/TargetLowering.h"
 
 namespace llvm {
 class StarcraftEUDSubtarget;
-
 namespace StarcraftEUDISD {
-enum NodeType {
-  // Start the numbering from where ISD NodeType finishes.
+enum NodeType : unsigned {
   FIRST_NUMBER = ISD::BUILTIN_OP_END,
-
-  // Get the Higher 16 bits from a 32-bit immediate
-  // No relation with StarcraftEUD Hi register
-  Hi,
-  // Get the Lower 16 bits from a 32-bit immediate
-  // No relation with StarcraftEUD Lo register
-  Lo,
-  // Return
-  Ret
+  RET_FLAG,
+  CALL,
+  SELECT_CC,
+  BR_CC,
+  Wrapper
 };
 }
 
 class StarcraftEUDTargetLowering : public TargetLowering {
-  const StarcraftEUDSubtarget *Subtarget;
-
 public:
-  StarcraftEUDTargetLowering(const TargetMachine &TM, const StarcraftEUDSubtarget &STI);
+  explicit StarcraftEUDTargetLowering(const TargetMachine &TM, const StarcraftEUDSubtarget &STI);
 
-  /// getTargetNodeName - This method returns the name of a target specific
-  //  DAG node.
+  // Provide custom lowering hooks for some operations.
+  SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const override;
+
+  // This method returns the name of a target specific DAG node.
   const char *getTargetNodeName(unsigned Opcode) const override;
 
+  // This method decides whether folding a constant offset
+  // with the given GlobalAddress is legal.
+  bool isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const override;
+
+  std::pair<unsigned, const TargetRegisterClass *>
+  getRegForInlineAsmConstraint(const TargetRegisterInfo *TRI,
+                               StringRef Constraint, MVT VT) const override;
+
+  MachineBasicBlock *
+  EmitInstrWithCustomInserter(MachineInstr &MI,
+                              MachineBasicBlock *BB) const override;
+
+  bool getHasJmpExt() const { return HasJmpExt; }
+
+private:
+  // Control Instruction Selection Features
+  bool HasJmpExt;
+
+  SDValue LowerBR_CC(SDValue Op, SelectionDAG &DAG) const;
+  SDValue LowerSELECT_CC(SDValue Op, SelectionDAG &DAG) const;
+  SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
+
+  // Lower the result values of a call, copying them out of physregs into vregs
+  SDValue LowerCallResult(SDValue Chain, SDValue InFlag,
+                          CallingConv::ID CallConv, bool IsVarArg,
+                          const SmallVectorImpl<ISD::InputArg> &Ins,
+                          const SDLoc &DL, SelectionDAG &DAG,
+                          SmallVectorImpl<SDValue> &InVals) const;
+
+  // Maximum number of arguments to a call
+  static const unsigned MaxArgs;
+
+  // Lower a call into CALLSEQ_START - StarcraftEUDISD:CALL - CALLSEQ_END chain
+  SDValue LowerCall(TargetLowering::CallLoweringInfo &CLI,
+                    SmallVectorImpl<SDValue> &InVals) const override;
+
+  // Lower incoming arguments, copy physregs into vregs
   SDValue LowerFormalArguments(SDValue Chain, CallingConv::ID CallConv,
                                bool IsVarArg,
                                const SmallVectorImpl<ISD::InputArg> &Ins,
-                               const SDLoc &dl, SelectionDAG &DAG,
+                               const SDLoc &DL, SelectionDAG &DAG,
                                SmallVectorImpl<SDValue> &InVals) const override;
 
-  SDValue LowerReturn(SDValue Chain, CallingConv::ID CallConv, bool isVarArg,
+  SDValue LowerReturn(SDValue Chain, CallingConv::ID CallConv, bool IsVarArg,
                       const SmallVectorImpl<ISD::OutputArg> &Outs,
-                      const SmallVectorImpl<SDValue> &OutVals, const SDLoc &dl,
+                      const SmallVectorImpl<SDValue> &OutVals, const SDLoc &DL,
                       SelectionDAG &DAG) const override;
-};
-} // end namespace llvm
 
-#endif // NIOS2_ISELLOWERING_H
+  EVT getOptimalMemOpType(uint64_t Size, unsigned DstAlign, unsigned SrcAlign,
+                          bool IsMemset, bool ZeroMemset, bool MemcpyStrSrc,
+                          MachineFunction &MF) const override {
+    return Size >= 8 ? MVT::i64 : MVT::i32;
+  }
+
+  bool shouldConvertConstantLoadToIntImm(const APInt &Imm,
+                                         Type *Ty) const override {
+    return true;
+  }
+};
+}
+
+#endif

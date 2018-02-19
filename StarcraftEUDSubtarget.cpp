@@ -1,4 +1,4 @@
-//===-- StarcraftEUDSubtarget.cpp - StarcraftEUD Subtarget Information ------------------===//
+//===-- StarcraftEUDSubtarget.cpp - StarcraftEUD Subtarget Information ----------------------===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -13,6 +13,8 @@
 
 #include "StarcraftEUDSubtarget.h"
 #include "StarcraftEUD.h"
+#include "llvm/Support/Host.h"
+#include "llvm/Support/TargetRegistry.h"
 
 using namespace llvm;
 
@@ -24,20 +26,30 @@ using namespace llvm;
 
 void StarcraftEUDSubtarget::anchor() {}
 
-StarcraftEUDSubtarget::StarcraftEUDSubtarget(const Triple &TT, const std::string &CPU,
-                               const std::string &FS, const TargetMachine &TM)
-    :
-
-      // StarcraftEUDGenSubtargetInfo will display features by llc -march=broodwar
-      // -mcpu=help
-      StarcraftEUDGenSubtargetInfo(TT, CPU, FS), TargetTriple(TT),
-      InstrInfo(initializeSubtargetDependencies(CPU, FS)), TLInfo(TM, *this),
-      FrameLowering(*this) {}
-
 StarcraftEUDSubtarget &StarcraftEUDSubtarget::initializeSubtargetDependencies(StringRef CPU,
-                                                                StringRef FS) {
-  // Parse features string.
-  ParseSubtargetFeatures(CPU, FS);
-
+                                                            StringRef FS) {
+  initializeEnvironment();
+  initSubtargetFeatures(CPU, FS);
   return *this;
 }
+
+void StarcraftEUDSubtarget::initializeEnvironment() {
+  HasJmpExt = false;
+}
+
+void StarcraftEUDSubtarget::initSubtargetFeatures(StringRef CPU, StringRef FS) {
+  /*if (CPU == "probe")
+    CPU = sys::detail::getHostCPUNameForBPF();
+  if (CPU == "generic" || CPU == "v1")
+    return;
+  if (CPU == "v2") {
+    HasJmpExt = true;
+    return;
+  }*/
+}
+
+StarcraftEUDSubtarget::StarcraftEUDSubtarget(const Triple &TT, const std::string &CPU,
+                           const std::string &FS, const TargetMachine &TM)
+    : StarcraftEUDGenSubtargetInfo(TT, CPU, FS), InstrInfo(),
+      FrameLowering(initializeSubtargetDependencies(CPU, FS)),
+      TLInfo(TM, *this) {}

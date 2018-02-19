@@ -1,4 +1,4 @@
-//===-- StarcraftEUDFrameLowering.h - Define frame lowering for StarcraftEUD --*- C++ -*-===//
+//===-- StarcraftEUDFrameLowering.h - Define frame lowering for StarcraftEUD -----*- C++ -*--===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -7,33 +7,35 @@
 //
 //===----------------------------------------------------------------------===//
 //
-//
+// This class implements StarcraftEUD-specific bits of TargetFrameLowering class.
 //
 //===----------------------------------------------------------------------===//
-#ifndef LLVM_LIB_TARGET_NIOS2_NIOS2FRAMELOWERING_H
-#define LLVM_LIB_TARGET_NIOS2_NIOS2FRAMELOWERING_H
 
-#include "StarcraftEUD.h"
+#ifndef LLVM_LIB_TARGET_STARCRAFTEUD_STARCRAFTEUDFRAMELOWERING_H
+#define LLVM_LIB_TARGET_STARCRAFTEUD_STARCRAFTEUDFRAMELOWERING_H
+
 #include "llvm/CodeGen/TargetFrameLowering.h"
 
 namespace llvm {
 class StarcraftEUDSubtarget;
 
 class StarcraftEUDFrameLowering : public TargetFrameLowering {
-protected:
-  const StarcraftEUDSubtarget &STI;
-
 public:
   explicit StarcraftEUDFrameLowering(const StarcraftEUDSubtarget &sti)
-      : TargetFrameLowering(TargetFrameLowering::StackGrowsDown, 4, 0, 4),
-        STI(sti) {}
+      : TargetFrameLowering(TargetFrameLowering::StackGrowsDown, 8, 0) {}
 
-  bool hasFP(const MachineFunction &MF) const override;
-  /// emitProlog/emitEpilog - These methods insert prolog and epilog code into
-  /// the function.
   void emitPrologue(MachineFunction &MF, MachineBasicBlock &MBB) const override;
   void emitEpilogue(MachineFunction &MF, MachineBasicBlock &MBB) const override;
-};
-} // namespace llvm
 
+  bool hasFP(const MachineFunction &MF) const override;
+  void determineCalleeSaves(MachineFunction &MF, BitVector &SavedRegs,
+                            RegScavenger *RS) const override;
+
+  MachineBasicBlock::iterator
+  eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
+                                MachineBasicBlock::iterator MI) const override {
+    return MBB.erase(MI);
+  }
+};
+}
 #endif

@@ -1,4 +1,4 @@
-//===-- StarcraftEUD.td - Describe the StarcraftEUD Target Machine -------*- tablegen -*-===//
+//===-- StarcraftEUD.td - Describe the StarcraftEUD Target Machine -----------*- tablegen -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -7,44 +7,44 @@
 //
 //===----------------------------------------------------------------------===//
 
-//===----------------------------------------------------------------------===//
-// Calling Conv, Instruction Descriptions
-//===----------------------------------------------------------------------===//
-
 include "llvm/Target/Target.td"
+
 include "StarcraftEUDRegisterInfo.td"
-include "StarcraftEUDSchedule.td"
-include "StarcraftEUDInstrInfo.td"
 include "StarcraftEUDCallingConv.td"
-
-//===----------------------------------------------------------------------===//
-// StarcraftEUD processors supported.
-//===----------------------------------------------------------------------===//
-
-class Proc<string Name, list<SubtargetFeature> Features>
- : Processor<Name, StarcraftEUDGenericItineraries, Features>;
-
-def : Proc<"generic", []>;
+include "StarcraftEUDInstrInfo.td"
 
 def StarcraftEUDInstrInfo : InstrInfo;
 
-def StarcraftEUDAsmParser : AsmParser {
-  let ShouldEmitMatchRegisterName = 0;
+class Proc<string Name, list<SubtargetFeature> Features>
+ : Processor<Name, NoItineraries, Features>;
+
+def : Proc<"generic", []>;
+def : Proc<"v1", []>;
+def : Proc<"v2", []>;
+def : Proc<"probe", []>;
+
+def DummyFeature : SubtargetFeature<"dummy", "isDummyMode",
+                                    "true", "unused feature">;
+
+def StarcraftEUDInstPrinter : AsmWriter {
+  string AsmWriterClassName  = "InstPrinter";
+  bit isMCAsmWriter = 1;
 }
 
-//===----------------------------------------------------------------------===//
-// Declare the target which we are implementing
-//===----------------------------------------------------------------------===//
+def StarcraftEUDAsmParser : AsmParser {
+  bit HasMnemonicFirst = 0;
+}
 
-def StarcraftEUDAsmWriter : AsmWriter {
-  string AsmWriterClassName  = "InstPrinter";
-  int PassSubtarget = 1;
+def StarcraftEUDAsmParserVariant : AsmParserVariant {
   int Variant = 0;
+  string Name = "StarcraftEUD";
+  string BreakCharacters = ".";
+  string TokenizingCharacters = "#()[]=:.<>!+*";
 }
 
 def StarcraftEUD : Target {
-// def StarcraftEUDInstrInfo : InstrInfo as before.
   let InstructionSet = StarcraftEUDInstrInfo;
+  let AssemblyWriters = [StarcraftEUDInstPrinter];
   let AssemblyParsers = [StarcraftEUDAsmParser];
-  let AssemblyWriters = [StarcraftEUDAsmWriter];
+  let AssemblyParserVariants = [StarcraftEUDAsmParserVariant];
 }

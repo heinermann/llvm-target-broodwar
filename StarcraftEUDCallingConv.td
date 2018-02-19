@@ -1,4 +1,4 @@
-//===- StarcraftEUDCallingConv.td - Calling Conventions for StarcraftEUD -*- tablegen -*-===//
+//===-- StarcraftEUDCallingConv.td - Calling Conventions StarcraftEUD --------*- tablegen -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -6,29 +6,24 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-// This describes the calling conventions for StarcraftEUD architecture.
+//
+// This describes the calling conventions for the StarcraftEUD architecture.
+//
 //===----------------------------------------------------------------------===//
 
-/// CCIfSubtarget - Match if the current subtarget has a feature F.
-class CCIfSubtarget<string F, CCAction A>:
-  CCIf<!strconcat("State.getTarget().getSubtarget<StarcraftEUDSubtarget>().", F), A>;
+// StarcraftEUD 64-bit C return-value convention.
+def RetCC_StarcraftEUD64 : CallingConv<[CCIfType<[i64], CCAssignToReg<[R0]>>]>;
 
-def CC_StarcraftEUD : CallingConv<[
-  // i32 f32 arguments get passed in integer registers if there is space.
-  CCIfType<[i32, f32], CCAssignToReg<[R4, R5, R6, R7]>>,
+// StarcraftEUD 64-bit C Calling convention.
+def CC_StarcraftEUD64 : CallingConv<[
+  // Promote i8/i16/i32 args to i64
+  CCIfType<[ i8, i16, i32 ], CCPromoteToType<i64>>,
 
-  // Alternatively, they are assigned to the stack in 4-byte aligned units.
-  CCAssignToStack<4, 4>
+  // All arguments get passed in integer registers if there is space.
+  CCIfType<[i64], CCAssignToReg<[ R1, R2, R3, R4, R5 ]>>,
+
+  // Could be assigned to the stack in 8-byte aligned units, but unsupported
+  CCAssignToStack<8, 8>
 ]>;
 
-def RetCC_StarcraftEUDEABI : CallingConv<[
-  // i32 are returned in registers R2, R3
-  CCIfType<[i32], CCAssignToReg<[R2, R3]>>,
-  // In case of floating point (FPH2 instr.) also use the same register set
-  CCIfType<[f32], CCAssignToReg<[R2, R3]>>,
-  CCIfByVal<CCPassByVal<4, 4>>,
-  // Stack parameter slots for i32 is 32-bit words and 4-byte aligned.
-  CCIfType<[i32], CCAssignToStack<4, 4>>
-]>;
-
-def CSR : CalleeSavedRegs<(add RA, FP, (sequence "R%u", 16, 23))>;
+def CSR : CalleeSavedRegs<(add R6, R7, R8, R9, R10)>;

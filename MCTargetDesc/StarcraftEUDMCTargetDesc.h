@@ -1,4 +1,4 @@
-//===-- StarcraftEUDMCTargetDesc.h - StarcraftEUD Target Descriptions ---------*- C++ -*-===//
+//===-- StarcraftEUDMCTargetDesc.h - StarcraftEUD Target Descriptions -------------*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -11,31 +11,60 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LLVM_LIB_TARGET_NIOS2_MCTARGETDESC_NIOS2MCTARGETDESC_H
-#define LLVM_LIB_TARGET_NIOS2_MCTARGETDESC_NIOS2MCTARGETDESC_H
+#ifndef LLVM_LIB_TARGET_STARCRAFTEUD_MCTARGETDESC_STARCRAFTEUDMCTARGETDESC_H
+#define LLVM_LIB_TARGET_STARCRAFTEUD_MCTARGETDESC_STARCRAFTEUDMCTARGETDESC_H
+
+#include "llvm/Config/config.h"
+#include "llvm/Support/DataTypes.h"
 
 #include <memory>
 
 namespace llvm {
 class MCAsmBackend;
+class MCCodeEmitter;
+class MCContext;
+class MCInstrInfo;
 class MCObjectWriter;
 class MCRegisterInfo;
+class MCSubtargetInfo;
 class MCTargetOptions;
+class StringRef;
 class Target;
 class Triple;
-class StringRef;
+class raw_ostream;
 class raw_pwrite_stream;
 
+Target &getTheStarcraftEUDleTarget();
+Target &getTheStarcraftEUDbeTarget();
 Target &getTheStarcraftEUDTarget();
 
-} // namespace llvm
+MCCodeEmitter *createStarcraftEUDMCCodeEmitter(const MCInstrInfo &MCII,
+                                      const MCRegisterInfo &MRI,
+                                      MCContext &Ctx);
+MCCodeEmitter *createStarcraftEUDbeMCCodeEmitter(const MCInstrInfo &MCII,
+                                        const MCRegisterInfo &MRI,
+                                        MCContext &Ctx);
+
+MCAsmBackend *createStarcraftEUDAsmBackend(const Target &T, const MCSubtargetInfo &STI,
+                                  const MCRegisterInfo &MRI,
+                                  const MCTargetOptions &Options);
+MCAsmBackend *createStarcraftEUDbeAsmBackend(const Target &T, const MCSubtargetInfo &STI,
+                                    const MCRegisterInfo &MRI,
+                                    const MCTargetOptions &Options);
+
+std::unique_ptr<MCObjectWriter> createStarcraftEUDELFObjectWriter(raw_pwrite_stream &OS,
+                                                         uint8_t OSABI,
+                                                         bool IsLittleEndian);
+}
 
 // Defines symbolic names for StarcraftEUD registers.  This defines a mapping from
 // register name to register number.
+//
 #define GET_REGINFO_ENUM
 #include "StarcraftEUDGenRegisterInfo.inc"
 
 // Defines symbolic names for the StarcraftEUD instructions.
+//
 #define GET_INSTRINFO_ENUM
 #include "StarcraftEUDGenInstrInfo.inc"
 

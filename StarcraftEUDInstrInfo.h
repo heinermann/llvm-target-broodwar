@@ -1,4 +1,4 @@
-//===-- StarcraftEUDInstrInfo.h - StarcraftEUD Instruction Information --------*- C++ -*-===//
+//===-- StarcraftEUDInstrInfo.h - StarcraftEUD Instruction Information ------------*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LLVM_LIB_TARGET_NIOS2_NIOS2INSTRINFO_H
-#define LLVM_LIB_TARGET_NIOS2_NIOS2INSTRINFO_H
+#ifndef LLVM_LIB_TARGET_STARCRAFTEUD_STARCRAFTEUDINSTRINFO_H
+#define LLVM_LIB_TARGET_STARCRAFTEUD_STARCRAFTEUDINSTRINFO_H
 
 #include "StarcraftEUDRegisterInfo.h"
 #include "llvm/CodeGen/TargetInstrInfo.h"
@@ -22,28 +22,40 @@
 
 namespace llvm {
 
-class StarcraftEUDSubtarget;
-
 class StarcraftEUDInstrInfo : public StarcraftEUDGenInstrInfo {
   const StarcraftEUDRegisterInfo RI;
-  const StarcraftEUDSubtarget &Subtarget;
-  virtual void anchor();
 
 public:
-  explicit StarcraftEUDInstrInfo(StarcraftEUDSubtarget &ST);
+  StarcraftEUDInstrInfo();
 
-  /// getRegisterInfo - TargetInstrInfo is a superset of MRegister info.  As
-  /// such, whenever a client has an instance of instruction info, it should
-  /// always be able to get register info as well (through this method).
-  ///
-  const StarcraftEUDRegisterInfo &getRegisterInfo() const { return RI; };
+  const StarcraftEUDRegisterInfo &getRegisterInfo() const { return RI; }
 
-  bool expandPostRAPseudo(MachineInstr &MI) const override;
-
-  void copyPhysReg(MachineBasicBlock &MBB, MachineBasicBlock::iterator MI,
+  void copyPhysReg(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                    const DebugLoc &DL, unsigned DestReg, unsigned SrcReg,
                    bool KillSrc) const override;
+
+  void storeRegToStackSlot(MachineBasicBlock &MBB,
+                           MachineBasicBlock::iterator MBBI, unsigned SrcReg,
+                           bool isKill, int FrameIndex,
+                           const TargetRegisterClass *RC,
+                           const TargetRegisterInfo *TRI) const override;
+
+  void loadRegFromStackSlot(MachineBasicBlock &MBB,
+                            MachineBasicBlock::iterator MBBI, unsigned DestReg,
+                            int FrameIndex, const TargetRegisterClass *RC,
+                            const TargetRegisterInfo *TRI) const override;
+  bool analyzeBranch(MachineBasicBlock &MBB, MachineBasicBlock *&TBB,
+                     MachineBasicBlock *&FBB,
+                     SmallVectorImpl<MachineOperand> &Cond,
+                     bool AllowModify) const override;
+
+  unsigned removeBranch(MachineBasicBlock &MBB,
+                        int *BytesRemoved = nullptr) const override;
+  unsigned insertBranch(MachineBasicBlock &MBB, MachineBasicBlock *TBB,
+                        MachineBasicBlock *FBB, ArrayRef<MachineOperand> Cond,
+                        const DebugLoc &DL,
+                        int *BytesAdded = nullptr) const override;
 };
-} // namespace llvm
+}
 
 #endif
